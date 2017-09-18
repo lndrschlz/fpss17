@@ -1,3 +1,8 @@
+-- author: Leander Schulz
+
+-- vim shortcuts:
+-- set number
+-- set tabstop=8 softtabstop=0 expandtab shiftwidth=4 smarttab
 module Simple
 where
 
@@ -39,13 +44,32 @@ fib3 c x y z
 -- 1 erhöht.
 
 c       :: Integer -> Integer
-c n = undefined
+c x = ccount x 0
 
+ccount :: Integer -> Integer -> Integer
+ccount a n 
+    | a < 1        = error "Collatz value lower than 1"
+    | a == 1       = n
+    | mod a 2 == 0 = ccount (div a 2) (n+1)
+    | otherwise    = ccount (3*a+1) (n+1)
+    
 
--- Definieren Sie ein endrekurive Variante von c
-
+-- Definieren Sie ein endrekursive Variante von c
 c1      :: Integer -> Integer
-c1 = undefined
+c1 x 
+    | x < 1     = error "Lowest allowed value is 1"
+    | otherwise = c1h x 0
+
+c1h :: Integer -> Integer -> Integer
+c1h x n = 
+    if x == 1 
+        then n
+        else if x > 1
+            then c1h next (n+1)
+            else error "LOL" 
+    where next = if x `mod` 2 == 0 
+            then x `div` 2 
+            else 3*x+1
 
 
 -- Definieren Sie eine Funktion cmax, die für ein
