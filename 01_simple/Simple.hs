@@ -4,14 +4,30 @@ where
 -- Definieren Sie eine Funktion fib zur Berechung der Fibonacci-Zahlen
 -- ab 0
 fib     :: Integer -> Integer
-fib x = undefined
+--fib x = undefined
+--fib 0 = 0
+--fib 1 = 1
+--fib x = (fib (x-1)) + (fib (x-2))
 
+fib x
+    | x == 0 = 0
+    | x == 1 = 1
+    | x >= 2 = (fib (x-1)) + (fib (x-2))
+    | otherwise = error "Not allowed for negative values"
 
 -- Definieren Sie eine Funktion fib zur Berechung der Fibonacci-Zahlen
 -- ab 0 mit linearer Laufzeit
-
 fib2    :: Integer -> Integer
-fib2 = undefined
+fib2 0 = 0
+fib2 1 = 1
+fib2 x = fib3 0 0 1 x
+
+-- params(counter, last, last2, end)
+fib3 :: Integer -> Integer -> Integer -> Integer -> Integer
+fib3 c x y z
+    | c <  z = fib3 (c+1) (x+y) (x) z
+    | c == z = x
+    | c >  z = error "Something went wrong"
 
 -- Definieren Sie eine Funktion c (für Collatz), die berechnet
 -- wie viele Rekursionsschritte benötigt werden, um
