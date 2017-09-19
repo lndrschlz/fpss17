@@ -42,7 +42,6 @@ fib3 c x y z
 -- Folgende Reduktionsregel sind dabei anzuwenden: Wenn n gerade ist,
 -- so wird n halbiert, wenn n ungerade ist, so wird n verdreifacht und um
 -- 1 erhöht.
-
 c       :: Integer -> Integer
 c x = ccount x 0
 
@@ -76,18 +75,20 @@ c1h x n =
 -- Intervall von Zahlen das Maximum der
 -- Collatz-Funktion berechnet. Nutzen Sie die
 -- vordefinierten Funkt min und max.
-
 cmax    :: Integer -> Integer -> Integer
-cmax lb ub = undefined
+cmax lb ub 
+    | lb == ub  = c ub
+    | otherwise = max (c lb) (cmax (lb+1) ub)
 
 
 -- Definieren Sie eine Funktion imax, die für ein
 -- Intervall von Zahlen das Maximum einer
 -- ganzzahligen Funktion berechnet. Formulieren
 -- Sie die obige Funktion cmax so um, dass sie mit imax arbeitet.
-
 imax    :: (Integer -> Integer) -> Integer -> Integer -> Integer
-imax f lb ub = undefined
+imax f lb ub
+    | lb == ub  = f ub
+    | otherwise = max (f lb) (imax f (lb+1) ub)
 
 
 cmax1   :: Integer -> Integer -> Integer
@@ -99,8 +100,7 @@ cmax1
 -- das Maximum angenommen wird.
 -- Versuchen Sie, eine endrekursive Lösung zu finden
 -- (mit einer lokalen Hilfsfunktion).
-
 imax2   :: (Integer -> Integer) -> Integer -> Integer -> (Integer, Integer)
 imax2 f lb ub = undefined
-
+    
 -- ----------------------------------------
