@@ -14,21 +14,20 @@ import Prelude hiding (splitAt)
 -- In particular, it keeps only the first occurrence of each element.
 -- (The name nub means `essence'.)
 --
--- Complexity class?
+-- Complexity class: O(n^2)
 
 -- .1 nub with filter
 
 nub :: Eq a => [a] -> [a]
 nub [] = []
-nub (x : xs) = undefined
+nub (x : xs) = x : nub (filter (/= x) xs)
 
 
 -- .2 nub with list comprehension
 
 nub' :: Eq a => [a] -> [a]
 nub' [] = []
-nub' (x : xs) = undefined
-
+nub' (x : xs) = x : [n | n <- nub' xs, n /= x]
 
 -- .3 nub with foldr
 -- after chapter about folds
@@ -61,7 +60,11 @@ splitAt i xs = (take i xs, drop i xs)
 
 -- the impl
 splitAt' :: Int -> [a] -> ([a],[a])
-splitAt' = undefined
+splitAt' _ [] = ([],[])
+splitAt' i (x:xs) 
+    | i <  1 = ([],xs)
+    | i == 1 = ([x],[xs])
+    | i >  1 = ...
 
 -- ----------------------------------------
 
