@@ -148,17 +148,20 @@ partition'' f = foldr op ([],[])
 
 inits        :: [a] -> [[a]]
 inits [] = [[]]
-inits (x:[]) = [[]] ++ [[x]] 
-inits (x:xs) = [x:(head xs)] 
+--inits (x:[]) = [[]] ++ [[x]] 
+inits (x:xs) = [] : map (x:) (inits xs)
 
---(x:xs) -> [x:head xs]
+
 
 
 -- 2. impl: with foldr
 -- after chapter about folds
 
 inits'        :: [a] -> [[a]]
-inits' = foldr (\ x xs -> [[x]] ++ xs ) []
+--inits' = foldr (\ x xs -> [[x]] ++ xs ) []
+--  inits' (x:xs) = foldr (map (x:) (inits xs) ) []
+inits' [] = [[]]
+inits' (x:xs) = foldr (\ y ys -> [] : map (y:) ys ) [] (x:xs) ++ [(x:xs)]
 
 -- ----------------------------------------
 
@@ -173,7 +176,7 @@ inits' = foldr (\ x xs -> [[x]] ++ xs ) []
 --
 
 join' :: a -> [[a]] -> [a]
-join' = undefined
+join' c l = intercalate' [c] l
 
 -- | splits the input into sublists at delimiter
 --   1. arg is the delimiter
@@ -181,5 +184,11 @@ join' = undefined
 -- siehe takewhile, dropwhile
 split' :: Eq a => a -> [a] -> [[a]]
 split' = undefined
-
+--split' d (x:xs) = foldr (\ y ys -> filter (/= d) (x:xs)) []
+--split' d = foldr op [] 
+--            where 
+--                op [] = []
+--                op (x:xs)
+--                | x == d    = [] : op xs
+--               | otherwise = [x:op xs]
 -- ----------------------------------------
