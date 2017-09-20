@@ -1,6 +1,12 @@
+-- author: Leander Schulz
 -- ----------------------------------------
 --
 -- simple operations on lists
+--
+-- run tests:
+-- ghci ../../Tests/SimpleListOps.hs
+-- > quickCheck prop_nub
+--
 
 module Data.List.SimpleOps
 where
@@ -33,8 +39,12 @@ nub' (x : xs) = x : [n | n <- nub' xs, n /= x]
 -- after chapter about folds
 
 nub'' :: Eq a => [a] -> [a]
-nub'' = undefined
-
+nub'' = foldr myfilter []
+                where myfilter x xs = (x : filter (/= x) xs) 
+-- shorter
+nub''' :: Eq a => [a] -> [a]
+nub''' = foldr (\ x xs -> x:filter (/= x) xs) []
+--              -> implizite Funktionsdeklaration!
 
 -- ----------------------------------------
 
@@ -62,25 +72,41 @@ splitAt i xs = (take i xs, drop i xs)
 splitAt' :: Int -> [a] -> ([a],[a])
 splitAt' _ [] = ([],[])
 splitAt' i (x:xs) 
-    | i <  1 = ([],xs)
-    | i == 1 = ([x],[xs])
-    | i >  1 = ...
+    | i <  1 = ([],(x:xs))
+    | i == 1 = ([x],xs)
+    | i >  1 = splitHelp i ([x],xs)
+    where 
+        splitHelp :: Int -> ([a],[a]) -> ([a],[a])
+        splitHelp i ([],[]) = ([],[])
+        splitHelp i ((x:xs),[]) = ((x:xs),[])
+        splitHelp i ((x:xs),(y:ys))
+            | i == 1 = ((x:xs),(y:ys))
+            | i >  1 = splitHelp (i-1) ([x] ++ xs ++ [y],(ys))
+            | otherwise = error "i is not in allowed range"
 
 -- ----------------------------------------
 
 -- | 'intercalate' inserts the list @xs@ in between
 -- the lists in @xss@ and concatenates the
 -- result.
-
+-- e.g. [1,2] [[2,3,4],[5,6,7]] -> [[2,3,4],[1,2],[5,6,7]]
 -- 1. impl: direct or with map
 intercalate :: [a] -> [[a]] -> [a]
-intercalate = undefined
+intercalate _ []     = []
+intercalate l (x:[]) = x
+intercalate l (x:xs) = x ++ l ++ intercalate l xs
 
 -- 2. impl: with foldr
 -- after chapter about folds
 intercalate' :: [a] -> [[a]] -> [a]
-intercalate' = undefined
-
+--intercalate' l = foldr (\ x xs -> x ++ l ++ xs) []
+intercalate' l = foldr myfilter []
+                  where 
+                    -- myfilter [] [] = l
+                    myfilter [] x = x
+                    myfilter x [] = x
+                    myfilter x xs = x ++ l ++ xs     
+                             
 -- ----------------------------------------
 
 -- | The 'partition' function takes a predicate and a list and returns

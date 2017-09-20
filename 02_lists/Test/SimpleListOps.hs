@@ -21,6 +21,10 @@ prop_nub'' :: String -> Bool
 prop_nub'' xs
   = nub'' xs == L.nub xs
 
+prop_nub''' :: String -> Bool
+prop_nub''' xs
+  = nub''' xs == L.nub xs
+
 -- ----------------------------------------
 
 prop_splitAt :: String -> Property
@@ -85,6 +89,7 @@ testNub
     [ prop_nub
     , prop_nub'
     , prop_nub''
+    , prop_nub'''
     ]
 
 testSplit :: IO ()
