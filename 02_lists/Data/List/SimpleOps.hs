@@ -98,15 +98,19 @@ intercalate l (x:xs) = x ++ l ++ intercalate l xs
 
 -- 2. impl: with foldr
 -- after chapter about folds
-intercalate' :: [a] -> [[a]] -> [a]
---intercalate' l = foldr (\ x xs -> x ++ l ++ xs) []
-intercalate' l = foldr myfilter []
+intercalate'' :: [a] -> [[a]] -> [a]
+intercalate'' l = foldr myfilter []
                   where 
                     -- myfilter [] [] = l
                     myfilter [] x = x
                     myfilter x [] = x
                     myfilter x xs = x ++ l ++ xs     
-                             
+
+intercalate' :: [a] -> [[a]] -> [a]
+intercalate' l [] = []
+intercalate' l (x:xs) = x ++ foldr (\ y ys -> l ++ y ++ ys) [] xs
+                --where op y r = l ++ y ++ r 
+               
 -- ----------------------------------------
 
 -- | The 'partition' function takes a predicate and a list and returns
@@ -121,13 +125,20 @@ partition p xs
 
 -- 1. impl: direct
 partition' :: (a -> Bool) -> [a] -> ([a], [a])
-partition' = undefined
+partition' f [] = ([],[])
+partition' f (x:xs) = 
+    if f x 
+        then ((x:fst next), snd next)
+        else (fst next, (x:snd next))           
+    where
+        next = partition' f xs
 
 -- 2. impl: with foldr
 -- after chapter about folds
 
 partition'' :: (a -> Bool) -> [a] -> ([a], [a])
-partition'' = undefined
+partition'' f = foldr op ([],[])
+                    where op x (xs,ys) = if f x then (x:xs,ys) else (xs,x:ys)   
 
 -- ----------------------------------------
 --
