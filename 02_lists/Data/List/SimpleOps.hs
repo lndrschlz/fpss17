@@ -147,13 +147,18 @@ partition'' f = foldr op ([],[])
 -- 1. impl: direct
 
 inits        :: [a] -> [[a]]
-inits = undefined
+inits [] = [[]]
+inits (x:[]) = [[]] ++ [[x]] 
+inits (x:xs) = [x:(head xs)] 
+
+--(x:xs) -> [x:head xs]
+
 
 -- 2. impl: with foldr
 -- after chapter about folds
 
 inits'        :: [a] -> [[a]]
-inits' = undefined
+inits' = foldr (\ x xs -> [[x]] ++ xs ) []
 
 -- ----------------------------------------
 
@@ -173,7 +178,7 @@ join' = undefined
 -- | splits the input into sublists at delimiter
 --   1. arg is the delimiter
 --   the delimiter does not occur in elements of result list
-
+-- siehe takewhile, dropwhile
 split' :: Eq a => a -> [a] -> [[a]]
 split' = undefined
 
