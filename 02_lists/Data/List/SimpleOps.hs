@@ -188,13 +188,4 @@ split' d (x:xs) -- = foldr (takeWhile (/= [d])) [] (x:xs)
         | d == x    = split' d xs
         | xs == []  = [[x]]
         | otherwise = [[x]] ++ split' d xs
-        -- where splitty 
-
---split' d (x:xs) = foldr (\ y ys -> filter (/= d) (x:xs)) []
---split' d = foldr op [] 
---            where 
---                op [] = []
---                op (x:xs)
---                | x == d    = [] : op xs
---               | otherwise = [x:op xs]
--- ----------------------------------------
+        
