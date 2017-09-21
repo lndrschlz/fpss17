@@ -183,7 +183,13 @@ join' c l = intercalate' [c] l
 --   the delimiter does not occur in elements of result list
 -- siehe takewhile, dropwhile
 split' :: Eq a => a -> [a] -> [[a]]
-split' = undefined
+split' _ [] = [[]]
+split' d (x:xs) -- = foldr (takeWhile (/= [d])) [] (x:xs)
+        | d == x    = split' d xs
+        | xs == []  = [[x]]
+        | otherwise = [[x]] ++ split' d xs
+        -- where splitty 
+
 --split' d (x:xs) = foldr (\ y ys -> filter (/= d) (x:xs)) []
 --split' d = foldr op [] 
 --            where 
