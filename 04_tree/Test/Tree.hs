@@ -1,3 +1,5 @@
+-- author: leander schulz
+
 module Test.Tree
 where
 
@@ -24,16 +26,14 @@ prop_fromList''' xs
 -- strong balancing criterium
 -- length of paths may be differ at most by 1
 prop_balance :: Tree Int -> Bool
-prop_balance t
-  = undefined
-
+prop_balance t = minDepth t >= maxDepth t - 1
+                        
 -- weaker balancing criterium
--- no path is longer than "ceiling (ld n)"
+-- no path is longer than "ceiling (ld n)" log2 (anzahlElemente)
 -- but shorter paths are allowed
 
 prop_balance' :: Tree Int -> Bool
-prop_balance' t
-  = undefined
+prop_balance' t = maxDepth t <= ceiling (logBase 2 (fromIntegral (sizeTree t)))
 
 -- ----------------------------------------
 
