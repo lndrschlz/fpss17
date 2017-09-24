@@ -12,7 +12,11 @@ import           Data.Maybe                       (listToMaybe)
 -- ----------------------------------------
 
 truthTable :: Int -> [[Bool]]
-truthTable n = undefined
+truthTable n
+  | n == 0 = []
+  | n == 1 = [[False],[True]]
+  | n > 1  = [n1 ++ [n2] | n1 <- truthTable (n-1), n2 <- [False,True]]
+  | otherwise = error "Impossible to generate truthTable"
 
 -- compute a proof by generating a truth table,
 -- iterate over all rows in the table
