@@ -1,3 +1,4 @@
+-- author: leander schulz
 module Data.Expr.Proposition.Proof where
 
 import           Data.Expr.Proposition.Constr
@@ -27,9 +28,14 @@ truthTable n
 -- is a tautology
 
 proof' :: Expr -> Maybe VarEnv
-proof' e
-  = undefined
-
+proof' e  = (listToMaybe . foldr evalEnv []) envs
+            where
+              vars      = freeVars e
+              fullTable = map (map Lit) $ truthTable $ length vars
+              envs      = map (zip vars) fullTable
+              evalEnv env falseEnvs
+                | eval $ substVars env e = falseEnvs
+                | otherwise = env:falseEnvs
 
 proof :: Expr -> String
 proof e

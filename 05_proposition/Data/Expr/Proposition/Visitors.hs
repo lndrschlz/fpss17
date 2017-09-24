@@ -4,6 +4,7 @@ module Data.Expr.Proposition.Visitors where
 
 import Data.Expr.Proposition.Types
 import Data.Expr.Proposition.Visit
+-- author: leander schulz
 import Data.Expr.Proposition.Eval (mf1, mf2)
 
 import Data.Set(Set)

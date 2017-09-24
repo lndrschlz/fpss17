@@ -1,3 +1,4 @@
+-- author: leander schulz
 module Data.Expr.Proposition.Substitute where
 
 --freeVars: union excludes dublicates

@@ -1,3 +1,4 @@
+-- author: leander schulz
 -- | the visitor pattern for Expr
 
 module Data.Expr.Proposition.Visit where
