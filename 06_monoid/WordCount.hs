@@ -1,3 +1,4 @@
+-- author: leander schulz
 {-# LANGUAGE UnboxedTuples #-}
 
 module WordCount where
@@ -50,8 +51,8 @@ newtype Max
   = Max Int
 
 instance Monoid Max where
-  mempty  = undefined
-  mappend = undefined
+  mempty  = Max 0
+  Max x `mappend` Max y = Max $ max x y
 
 -- --------------------
 
@@ -60,8 +61,8 @@ newtype FrequencyCount
   deriving (Show) -- just for testing
            
 instance Monoid FrequencyCount where
-  mempty = undefined
-  mappend = undefined
+  mempty = FC M.empty
+  FC m1 `mappend` FC m2 = FC $ M.unionWith (+) m1 m2
 
 -- smart constructor
 singleFC :: T.Text -> FrequencyCount
@@ -73,11 +74,19 @@ singleFC w = FC (M.singleton w 1)
 
 processText :: T.Text -> Counters
 processText t
-  = undefined . T.lines $ t
+  = mconcat . map toCounters . T.lines $ t
 
 -- process a single line
 toCounters :: T.Text -> Counters
-toCounters t = undefined
+toCounters t = (Sum 1,              -- line count
+     (Sum $ length words,   -- word count
+      (Sum . T.length $ t,          -- char count
+       (Max . T.length $ t,         -- length longest line
+        (Sum . length . filter (\ c -> c == ' ') . T.unpack $ t,
+         (mconcat . map singleFC $ words, 
+          ()))))))
+          where
+            words = T.words t
 
 -- --------------------
 --

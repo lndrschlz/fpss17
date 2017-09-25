@@ -1,5 +1,8 @@
+-- author: leander schulz
 {-# LANGUAGE UnboxedTuples #-}
-
+-- set file name:
+-- ghci> :set args "file.txt"
+-- ghci> main
 module WordCount0 where
 
 -- the working horse
@@ -38,12 +41,13 @@ type Counters
 
 processText :: T.Text -> Counters
 processText t
-  = undefined . T.lines $ t
+  = mconcat . map toCounters . T.lines $ t
 
 -- process a single line
 toCounters :: T.Text -> Counters
-toCounters = undefined
-
+toCounters line = (Sum 1,
+                   (Sum . length . T.words $ line,
+                    (Sum . T.length $ line, ())))
 -- --------------------
 --
 -- the boring formatting of the results
