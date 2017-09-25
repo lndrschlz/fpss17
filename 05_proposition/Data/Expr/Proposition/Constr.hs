@@ -29,7 +29,7 @@ binary = Binary
 (.&&.), (.||.), (.=>.), (.<=>.), (.<+>.) :: Expr -> Expr -> Expr
 
 (.&&.)  = binary And
-(.||.)  = binary Or
+(.||.)  = binary Or 
 (.=>.)  = binary Impl
 (.<+>.) = binary Xor
 (.<=>.) = binary Equiv

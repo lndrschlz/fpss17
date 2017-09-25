@@ -1,3 +1,4 @@
+-- author: leander schulz
 module Data.Expr.Proposition.Proof where
 
 import           Data.Expr.Proposition.Constr
@@ -12,7 +13,11 @@ import           Data.Maybe                       (listToMaybe)
 -- ----------------------------------------
 
 truthTable :: Int -> [[Bool]]
-truthTable n = undefined
+truthTable n
+  | n == 0 = []
+  | n == 1 = [[False],[True]]
+  | n > 1  = [n1 ++ [n2] | n1 <- truthTable (n-1), n2 <- [False,True]]
+  | otherwise = error "Impossible to generate truthTable"
 
 -- compute a proof by generating a truth table,
 -- iterate over all rows in the table
@@ -23,9 +28,14 @@ truthTable n = undefined
 -- is a tautology
 
 proof' :: Expr -> Maybe VarEnv
-proof' e
-  = undefined
-
+proof' e  = (listToMaybe . foldr evalEnv []) envs
+            where
+              vars      = freeVars e
+              fullTable = map (map Lit) $ truthTable $ length vars
+              envs      = map (zip vars) fullTable
+              evalEnv env falseEnvs
+                | eval $ substVars env e = falseEnvs
+                | otherwise = env:falseEnvs
 
 proof :: Expr -> String
 proof e
