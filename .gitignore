@@ -1,3 +1,8 @@
 *.tar
 *.zip
 *.swp
+*.tar.gz
+*.hi
+*.o
+*.txt
+
