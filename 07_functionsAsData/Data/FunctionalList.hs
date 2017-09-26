@@ -42,24 +42,24 @@ concat          = P.foldr (append) empty
 -- like map for normal lists: foldr ((:) . f) []
 -- test: toList P.$ map (\ x -> P.show x) (fromList [1,2,3,4])
 map             :: (a -> b) -> List a -> List b
-map f l           = P.foldr (cons . f) empty P.$ l []
-
+map f l         = P.foldr (cons . f) empty P.$ l []
 
 -- foldr with foldr for normal lists
+-- test: foldr (P.+) 0 P.$ fromList [1,2,3,4,5]
 foldr           :: (a -> b -> b) -> b -> List a -> b
-foldr op n      = undefined
+foldr op n      = P.foldr op n . toList
 
 -- head, tail, null
 head            :: List a -> a
-head            = undefined
+head            = P.head . toList
 
 tail            :: List a -> List a
-tail            = undefined
+tail l          = P.tail . l
 
 null            :: List a -> Bool
-null            = undefined
+null            = P.null . toList
 
 reverse         :: List a -> List a
-reverse         = undefined
+reverse l       = P.reverse . l
 
 -- ----------------------------------------
