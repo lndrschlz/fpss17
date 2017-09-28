@@ -150,7 +150,8 @@ eval :: Expr -> Result Value
 eval (BLit b)          = return (B b)
 eval (ILit i)          = return (I i)
 -- wert auslesen und zurück geben
-eval (Var    x)        = undefined
+eval (Var    x)        = do v1 <- asks $ M.lookup x
+                            maybe (freeVar x) return v1
 eval (Unary  op e1)    = do v1  <- eval e1
                             mf1 op v1
 
@@ -164,7 +165,8 @@ eval (Cond   c e1 e2)  = do b <- evalBool c
                               else eval e2
 
 -- x = eval e1 -> eval (e2) 
-eval (Let x e1 e2)     = undefined
+eval (Let x e1 e2)     = do value <- eval e1
+                            local (M.insert x value) (eval e2)
 
 evalBool :: Expr -> Result Bool
 evalBool e
