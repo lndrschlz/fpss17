@@ -1,35 +1,27 @@
--- author: leander schulz
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Data.Expr.ArithmLogic.EvalReaderErrorMonad where
+module Data.Expr.ArithmLogic.EvalErrorMonad where
 
 import Control.Applicative (Applicative(..))
 import Control.Monad
 import Control.Monad.Except
-import Control.Monad.Reader
 
 import Data.Expr.ArithmLogic.Types
 import Data.Pretty
 
-import Data.Map (Map)
-import qualified Data.Map as M
-
--- ----------------------------------------
--- simple expression evaluation in monadic form
---
--- evaluates expressions with free variables and local let bindings
-
 -- ----------------------------------------
 --
--- the pure value
+-- simple expression evaluation with error handling
+--
+-- evaluates expressions without any free or bound variable
+
+-- ----------------------------------------
 
 data Value
   = B Bool
   | I Integer
     deriving (Eq, Ord, Show)
-
+             
 instance Pretty Value where
   pretty (B b) = pretty b
   pretty (I i) = pretty i
@@ -43,81 +35,44 @@ isI (I _) = True
 isI _     = False
 
 -- ----------------------------------------
---
--- the Value / Error sum type
 
-data ResVal a
-  = R { resVal :: a}
+data Result a
+  = R { resVal :: a         }
   | E { resErr :: EvalError }
     deriving (Show)
 
-instance Functor ResVal where
-  fmap f (R x) = R (f x)
-  fmap _ (E e) = E e
-
-instance Applicative ResVal where
-  pure = return
-  (<*>) = ap
-
-instance Monad ResVal where
-  return = R
-  R x >>= f = f x
-  E e >>= _ = E e
-
-instance MonadError EvalError ResVal where
-  throwError = E
-  catchError r@(R _) _ = r
-  catchError   (E e) f = f e
-
-instance (Pretty a) => Pretty (ResVal a) where
-  pretty (R x) = pretty x
-  pretty (E e) = "error: " ++ pretty e
-
--- ----------------------------------------
-
-type Env = Map Ident Value
-
-newtype Result a = RR { unRR :: Env -> ResVal a }
-
 instance Functor Result where
---fmap :: (a -> b) -> (f a -> f b)
   fmap f c = c >>= return . f
 
 instance Applicative Result where
   pure = return
   (<*>) = ap
-
+  
 instance Monad Result where
--- return ::   a -> m a
-  return x = RR $ \ env -> R x
--- >>=    :: m a -> (a -> m b) -> m b(ResVal)
-  RR x >>= f = RR $ \ env ->
-                  do v <- x env
-                     (unRR (f v)) env
+  return = R
+  (R x) >>= f = f x
+  (E x) >>= f = E x
 
--- MonadError e m 
---    throwError :: e -> m a
---    catchError :: m a -> (e -> m a) -> m a
 instance MonadError EvalError Result where
-  throwError e = RR $ \ env -> E e
-  catchError (RR ef) handler
-    = RR (\ env -> catchError (ef env) (\ e -> unRR (handler e) env) )
-
--- MonadReader r m 
---    ask   :: m r
---    local :: (r -> r) -> m a -> m a
-instance MonadReader Env Result where
-  ask             = RR $ \ env -> return env
-  local f (RR ef) = RR $ \ env -> ef (f env)
+-- throwError :: e -> m a
+  throwError = E
+-- catchError :: m a ->l (e -> m a) -> m a
+  catchError (E e) f = f e
+  catchError (R r) f = R r
+  
+instance (Pretty a) => Pretty (Result a) where
+  pretty (R x) = pretty x
+  pretty (E e) = "error: " ++ pretty e
 
 -- ----------------------------------------
 -- error handling
-
+  
 data EvalError
   = FreeVar String
   | NotImpl String
-  | ValErr  String Value
+  | ValErr  String Value 
   | Div0
+  | Mzero
   deriving (Show)
 
 instance Pretty EvalError where
@@ -125,6 +80,7 @@ instance Pretty EvalError where
   pretty (NotImpl n)  = n ++ " not implemented"
   pretty (ValErr e g) = e ++ " value expected, but got: " ++ pretty g
   pretty Div0         = "divide by zero"
+  pretty Mzero        = "mzero"
 
 boolExpected :: Value -> Result a
 boolExpected = throwError . ValErr "Bool"
@@ -143,28 +99,20 @@ div0  = throwError Div0
 
 -- ----------------------------------------
 
-eval' :: Expr -> ResVal Value
-eval' e = (unRR . eval) e M.empty -- start with an empty environment
-
 eval :: Expr -> Result Value
-eval (BLit b)          = return (B b)
-eval (ILit i)          = return (I i)
--- wert auslesen und zurück geben
-eval (Var    x)        = undefined
-eval (Unary  op e1)    = do v1  <- eval e1
+eval (BLit b)          = R (B b)
+eval (ILit i)          = R (I i)
+eval (Var    x)        = freeVar ("eval (Var _)")
+eval (Unary  op e1)    = do v1 <- eval e1 
                             mf1 op v1
-
-eval (Binary op e1 e2) = do v1  <- eval e1
-                            v2  <- eval e2
+eval (Binary op e1 e2) = do v1 <- eval e1 
+                            v2 <- eval e2
                             mf2 op v1 v2
-
 eval (Cond   c e1 e2)  = do b <- evalBool c
                             if b
-                              then eval e1
+                              then eval e1  
                               else eval e2
-
--- x = eval e1 -> eval (e2) 
-eval (Let x e1 e2)     = undefined
+eval (Let _x _e1 _e2)  = notImpl "eval (Let _)"
 
 evalBool :: Expr -> Result Bool
 evalBool e
@@ -172,8 +120,9 @@ evalBool e
        case r of
         (B b) -> return b
         _     -> boolExpected r
-
+  
 -- ----------------------------------------
+-- MF: Meaning function
 
 type MF1 = Value -> Result Value
 
@@ -183,19 +132,19 @@ mf1 ToInt      = op1BI (toInteger . fromEnum)
 mf1 UPlus      = op1II id
 mf1 UMinus     = op1II (0 -)
 mf1 Signum     = op1II signum
-mf1 op         = \ _ -> notImpl (pretty op)
-
+mf1 op         = \ _ -> notImpl "Operation"
+  
 op1BB :: (Bool -> Bool) -> MF1
 op1BB op (B b) = return $ B (op b)
 op1BB _  v     = boolExpected v
 
 op1II :: (Integer -> Integer) -> MF1
 op1II op (I i) = return (I (op i))
-op1II _  v     = intExpected v
+op1II _  v     = notImpl "Operation"
 
 op1BI :: (Bool -> Integer) -> MF1
 op1BI op (B b) = return (I (op b))
-op1BI _  v     = boolExpected v
+op1BI _  v     = notImpl "Operation"
 
 -- ----------------------------------------
 
@@ -222,28 +171,21 @@ mf2 op        = \ _ _ -> notImpl (pretty op)
 
 op2BBB :: (Bool -> Bool -> Bool) -> MF2
 op2BBB op (B b1) (B b2) = return (B (b1 `op` b2))
-op2BBB _  v1     v2
-  | not (isB v1)        = boolExpected v1
-  | otherwise           = boolExpected v2
+op2BBB _  v1     v2     = notImpl "illegal operand with op :: Bool -> Bool -> Bool"
 
 op2III :: (Integer -> Integer -> Integer) -> MF2
 op2III op (I i1) (I i2) = return (I (i1 `op` i2))
-op2III _  v1      v2
-  | not (isI v1)        = intExpected v1
-  | otherwise           = intExpected v2
+op2III _  v1      v2    = notImpl "illegal operand with op :: Integer -> Integer -> Integer"
 
 op2IIB :: (Integer -> Integer -> Bool) -> MF2
 op2IIB op (I i1) (I i2) = return (B (i1 `op` i2))
-op2IIB _  v1      v2
-  | not (isI v1)        = intExpected v1
-  | otherwise           = intExpected v2
+op2IIB _  v1      v2    = notImpl "illegal operand with op :: Integer -> Integer -> Bool"
+
 
 divIII :: (Integer -> Integer -> Integer) -> MF2
-divIII op (I x) (I y)
-  | y == 0              = div0
-  | otherwise           = return (I (x  `op` y))
-divIII _  v1      v2
-  | not (isI v1)        = intExpected v1
-  | otherwise           = intExpected v2
+divIII op (I x) (I y)   = if y == 0
+                            then div0
+                            else return (I (x `op` y))
+divIII _  v1      v2    = notImpl "illegal operand with op :: Integer -> Integer -> Integer"
 
 -- ----------------------------------------
