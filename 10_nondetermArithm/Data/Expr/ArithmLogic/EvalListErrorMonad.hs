@@ -54,7 +54,7 @@ isE _     = False
 
 --  fmap :: (a -> b) -> (f a -> f b)
 instance Functor Result where
-  fmap = undefined
+  fmap f c = c >>= return . f
 
 instance Applicative Result where
   pure = return
@@ -76,8 +76,15 @@ instance Applicative Result where
 -- test case e11 in EvalSimple
 
 instance Monad Result where
-  return = undefined
-  (>>=)  = undefined
+-- return ::   a -> m a
+  return x = R [x]
+-- >>=    :: m [a] -> (a -> m b) -> m b
+  R xs >>= f = let rs = map f xs in
+               let es = filter isE rs in
+               case es of
+                [] -> R (concat $ map resVal rs)
+                (e:es') -> e
+  E e  >>= f = E e
 
 instance Alternative Result where
   empty = mzero
@@ -88,7 +95,8 @@ instance Alternative Result where
   
 instance MonadPlus Result where
   mzero = E Mzero
-  mplus = undefined
+--  mplus ::   m a -> m a -> m a
+  mplus (R as) (R bs) = R (as++bs)
   
 instance MonadError EvalError Result where
   throwError = E
@@ -147,7 +155,10 @@ eval :: Expr -> Result Value
 eval (BLit b)          = return (B b)
 eval (ILit i)          = return (I i)
 eval (Var    x)        = freeVar x
-eval (Unary  op e1)    = undefined
+eval (Unary  op e1)    = do vs <- eval e1
+                            mf1 op vs
+                            --let xs = map (mf1 op) vs in
+                            --  return (R (concat xs))
 eval (Binary And e1 e2)
                        = undefined
 eval (Binary Or  e1 e2)
